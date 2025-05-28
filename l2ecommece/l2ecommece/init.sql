@@ -4,28 +4,42 @@ BEGIN
    IF NOT EXISTS (SELECT FROM pg_database WHERE datname = 'ecommece') THEN
       CREATE DATABASE ecommece;
    END IF;
-
-   -- Criar a tabela se não existir
-   IF NOT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'credito') THEN
-      CREATE TABLE credito (
-         numero_credito VARCHAR(20),
-         numero_nfse VARCHAR(20),
-         data_constituicao DATE,
-         valor_issqn NUMERIC(10,2),
-         tipo_credito VARCHAR(50),
-         simples_nacional BOOLEAN,
-         aliquota NUMERIC(5,2),
-         valor_faturado NUMERIC(12,2),
-         valor_deducao NUMERIC(12,2),
-         base_calculo NUMERIC(12,2)
-      );
-
-      -- Inserir dados na tabela após a criação
-      INSERT INTO credito (numero_credito, numero_nfse, data_constituicao, valor_issqn, 
-         tipo_credito, simples_nacional, aliquota, valor_faturado, valor_deducao, base_calculo)
-      VALUES 
-         ('123456', '7891011', '2024-02-25', 1500.75, 'ISSQN', true, 5.0, 30000.00, 5000.00, 25000.00),
-         ('789012', '7891011', '2024-02-26', 1200.50, 'ISSQN', false, 4.5, 25000.00, 4000.00, 21000.00),
-         ('654321', '1122334', '2024-01-15', 800.50, 'Outros', true, 3.5, 20000.00, 3000.00, 17000.00);
-   END IF;
 END $$;
+
+-- Criação da tabela produto
+CREATE TABLE IF NOT EXISTS produto (
+    id SERIAL PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL,
+    altura NUMERIC(10,2) NOT NULL,
+    largura NUMERIC(10,2) NOT NULL,
+    comprimento NUMERIC(10,2) NOT NULL
+);
+
+-- Criação da tabela pedido
+CREATE TABLE IF NOT EXISTS pedido (
+    id SERIAL PRIMARY KEY
+);
+
+-- Tabela associativa para pedidos e produtos (N para N)
+CREATE TABLE IF NOT EXISTS pedido_produto (
+    pedido_id INTEGER REFERENCES pedido(id),
+    produto_id INTEGER REFERENCES produto(id),
+    PRIMARY KEY (pedido_id, produto_id)
+);
+
+-- Inserção de produtos
+INSERT INTO produto (nome, altura, largura, comprimento) VALUES
+('Notebook', 2.00, 30.00, 20.00),
+('Smartphone', 1.00, 7.00, 15.00),
+('Monitor', 5.00, 50.00, 30.00);
+
+-- Inserção de pedidos
+INSERT INTO pedido DEFAULT VALUES;
+INSERT INTO pedido DEFAULT VALUES;
+
+-- Associação de produtos aos pedidos
+INSERT INTO pedido_produto (pedido_id, produto_id) VALUES
+(1, 1), -- Pedido 1, Produto Notebook
+(1, 2), -- Pedido 1, Produto Smartphone
+(2, 2), -- Pedido 2, Produto Smartphone
+(2, 3); -- Pedido 2, Produto Monitor
